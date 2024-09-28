@@ -7,4 +7,5 @@ Maximum accuracy achieved was 97% (correct predictions of characters/total predi
 
 ## Links
 Dataset Used: https://www.kaggle.com/datasets/suvooo/hindi-character-recognition
+
 Video Demo: https://www.youtube.com/watch?v=B65aY0wFP3U
