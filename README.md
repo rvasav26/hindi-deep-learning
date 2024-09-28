@@ -1,4 +1,4 @@
-<img width="1079" alt="Screenshot 2024-09-27 at 9 48 59 PM" src="https://github.com/user-attachments/assets/58fb234b-af1f-4a04-8051-ea5197e475bc">
+<img width="800" alt="Screenshot 2024-09-27 at 9 48 59 PM" src="https://github.com/user-attachments/assets/58fb234b-af1f-4a04-8051-ea5197e475bc">
 
 # Hindi Optical Character Recognition
 Used dataset of handwritten Devanagari characters from Kaggle Dataset to develop and train Convolutional Neural Network (CNN) model. 
