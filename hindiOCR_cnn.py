@@ -3,7 +3,7 @@
 #Description: This is a custom-built Convolutional Neural Network (CNN) that 
 #has been trained on 9,000+ handwritten Devanagari characters. It contains several
 #layers such as max pooling and flattening to perform matrix transformations 
-#on the input matrix representing a 2D array of the handwritten character.
+#on the input matrix representing a 2D array of the handwritten character (in grayscale).
 
 #import libraries
 import tensorflow as tf
