@@ -1,7 +1,7 @@
 #Author: Rhushil Vasavada
 #Hindi Optical Character Recognition with Deep Learning
-#Description: this program enables a user to have a digital scratchpad where their
-#Hindi handwriting can be analyzed and assessed by a custom trained Tensorflow Convolutional 
+#Description: This program enables a user to have a digital scratchpad where their
+#Hindi handwriting can be analyzed and assessed by a custom trained TensorFlow Convolutional 
 #Neural Network (CNN) in real-time.
 
 # -*- coding: utf-8 -*-
