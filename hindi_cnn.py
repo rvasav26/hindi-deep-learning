@@ -1,6 +1,6 @@
 #Author: Rhushil Vasavada
-#Devanagari Character CNN Tensorflow Model
-#Description: This is a custom-built Convolutional Neural Network (CNN) that 
+#Devanagari Character CNN TensorFlow Model
+#Description: This is a custom-built convolutional neural network (CNN) that 
 #has been trained on 9,000+ handwritten Devanagari characters. It contains several
 #layers such as max pooling and flattening to perform matrix transformations 
 #on the input matrix representing a 2D array of the handwritten character (in grayscale).
