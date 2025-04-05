@@ -115,6 +115,6 @@ with tf.device('/gpu:0'):
                                   steps_per_epoch=2444, validation_steps=432, use_multiprocessing=True,
                                   callbacks=[early_stopping_monitor])
 
-# save model as pickle file to be used in other applications
+# save model to be used in other applications
 model.save("hindi_cnn_weights_tf2.h5")
 pickle.dump(model, open('hindi_OCR_cnn_model_pickle.pkl2', 'wb'))
