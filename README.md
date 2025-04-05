@@ -10,7 +10,7 @@ Maximum accuracy achieved was 93% (correct predictions of characters/total predi
 
 ## Part II: Airpad
 This is an extension to Part I, where, instead of drawing with a mouse, users can draw in mid-air with their pointer finger. This is done by using the additional MediaPipe library. First, 
-<img width="670" alt="Screenshot 2025-04-05 at 1 53 49 PM" src="https://github.com/user-attachments/assets/61558eae-52a4-4536-bbf4-7a1c778ef869" />
+<img width="670" alt="Screenshot 2025-04-05 at 1 56 32 PM" src="https://github.com/user-attachments/assets/4c3e7bfb-37f9-45e0-a8f5-3487e5e7b24f" />
 
 ## Links
 Video Demo: https://www.youtube.com/watch?v=B65aY0wFP3U
