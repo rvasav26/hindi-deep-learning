@@ -2,7 +2,8 @@
 # Deep Learning Hindi Scratchpad
 # Description: This program enables a user to have a digital scratchpad where their
 # Hindi handwriting can be analyzed and assessed by a custom trained TensorFlow Convolutional 
-# Neural Network (CNN) in real-time.
+# Neural Network (CNN) in real-time. Users can draw with their mouse and the CNN will recognize 
+# the handwriting nearly instantaneously.
 
 #  -*- coding: utf-8 -*-
 
