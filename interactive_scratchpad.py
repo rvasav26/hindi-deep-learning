@@ -26,8 +26,7 @@ classList = [u'\u091E', u'\u091F', u'\u0920', u'\u0921', u'\u0922', u'\u0923', u
              u'\u0917', u'\u0918', u'\u0919', u'\u091a', u'\u091b', u'\u091c', u'\u091d', u'\u0966', u'\u0967',
              u'\u0968', u'\u0969', u'\u096a', u'\u096b', u'\u096c', u'\u096d', u'\u096e', u'\u096f']
 
-model = load_model('hindi_cnn_weights_tf2.h5',
-                   compile=False)
+model = load_model('hindi_cnn_weights_tf2.h5', compile=False)
 x = 0
 y = 0
 drawing = False
