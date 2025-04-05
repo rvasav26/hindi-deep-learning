@@ -7,7 +7,7 @@ Used dataset of 9,000+ handwritten Devanagari characters to develop and train a 
 
 <img width="800" alt="img1" src="https://github.com/user-attachments/assets/d5727860-e50b-48f9-b75e-869009b46b84" />
 
-Using OpenCV and NumPy, I developed a program to enable users to write characters on an online scratchpad. The CNN recieves the image of the handwritten text in the form of a NumPy array and, after
+Using OpenCV and NumPy, I developed a program to enable users to write characters on an online scratchpad. The CNN receives the image of the handwritten text in the form of a NumPy array and, after
 performing matrix transformations, makes a prediction of the character. This process is entirely in real-time, and the user receives feedback from the model with a latency under 100 milliseconds.
 Maximum accuracy achieved was 93% (correct predictions of characters/total predictions)
 
