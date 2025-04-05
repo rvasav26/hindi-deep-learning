@@ -1,6 +1,6 @@
 # Author: Rhushil Vasavada
 # Deep Learning Hindi Airpad
-# Description: This program enables a user to have a digital airpad where their
+# Description: This program enables a user to draw in mid-air (airpad) where their
 # Hindi handwriting can be analyzed and assessed by a custom-trained TensorFlow Convolutional 
 # Neural Network (CNN) in real-time. Users can draw in the air with their pointer finger
 # and the program will detect the user's drawing. A user is drawing when their mouth is closed,
