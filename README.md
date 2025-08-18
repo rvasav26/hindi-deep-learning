@@ -2,15 +2,15 @@
 <img width="400" height="194.5" alt="img2" src="https://github.com/user-attachments/assets/1248fe94-a903-4100-a68d-9bfdff75f185" />
 
 # Hindi Deep Learning Scratchpad and Airpad
-Used a dataset of 9,000+ handwritten Devanagari characters to develop and train a TensorFlow convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
+Used a dataset of 8,500+ handwritten Devanagari characters to develop and train a TensorFlow convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
 
 ## Part I: Scratchpad
 
 <img width="800" alt="img3" src="https://github.com/user-attachments/assets/d5727860-e50b-48f9-b75e-869009b46b84" />
 
 Using OpenCV and NumPy, I developed a program to enable users to write characters on an online scratchpad. The CNN receives the image of the handwritten text in the form of a NumPy array and, after
-performing matrix transformations, makes a prediction of the character. This process is entirely in real time, and the user receives feedback from the model with a latency under 100 milliseconds.
-Maximum F1 score achieved was 0.93.
+performing matrix transformations, makes a prediction of the character. This process is entirely in real time, and the user receives feedback from the model with an inference latency under 100 milliseconds.
+
 
 ## Part II: Airpad
 
