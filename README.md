@@ -2,7 +2,7 @@
 <img width="400" height="194.5" alt="img2" src="https://github.com/user-attachments/assets/1248fe94-a903-4100-a68d-9bfdff75f185" />
 
 # Hindi Deep Learning Scratchpad and Airpad
-Used a dataset of 8,500+ handwritten Devanagari characters to develop and train a TensorFlow convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
+Used a dataset of 9,000+ handwritten Devanagari characters to develop and train a TensorFlow convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
 
 ## Part I: Scratchpad
 
