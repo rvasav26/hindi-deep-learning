@@ -21,10 +21,10 @@ from PIL import ImageDraw
 
 from devanagari_model import DEVANAGARI_CLASSES, load_trained_model
 
-# ---- Load model for inference (architecture lives in devanagari_model.py) ----
+# Load model for inference
 model, device = load_trained_model("hindi_cnn_weights_pytorch.pt")
 
-# load font once, outside the loop (your original reloaded this every single frame)
+# load font once, outside the loop
 font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
 
 # start recording video

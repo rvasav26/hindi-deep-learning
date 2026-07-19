@@ -36,9 +36,6 @@ drawing = False
 
 
 # function to enable user drawing based on mouse movement
-# (renamed from "draw" to avoid colliding with the ImageDraw object used below —
-# in your original, `draw` got silently reassigned every frame, which happened to
-# still work but was fragile)
 def mouseDraw(event, current_x, current_y, flags, params):
     global x, y, drawing
     if event == cv2.EVENT_LBUTTONDOWN:
