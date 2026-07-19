@@ -1,120 +1,167 @@
 # Author: Rhushil Vasavada
-# Devanagari Character CNN TensorFlow Model
-# Description: This is a custom-built convolutional neural network (CNN) that 
-# has been trained on 9,000+ handwritten Devanagari characters. It contains several
-# layers built with Keras such as max pooling and flattening to perform matrix transformations 
-# on the input matrix representing a 2D array of the handwritten character (in grayscale).
+# Devanagari Character CNN — PyTorch port
+# Same architecture as devanagari_cnn_modern.py (TF/Keras version), rewritten
+# with torchvision datasets/transforms and a standard PyTorch training loop.
 
-# import libraries
-import tensorflow as tf
-import pickle
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
-from keras.callbacks import EarlyStopping
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
-# create a generator to be used to manipulate training data
-trainDataGen = ImageDataGenerator(
-    rotation_range=5,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    rescale=1.0 / 255,
-    shear_range=0.2,
-    zoom_range=0.2,
-    horizontal_flip=False,
-    fill_mode='nearest')
+# ---- Config ----
+IMG_SIZE = (32, 32)
+BATCH_SIZE = 32
+NUM_CLASSES = 46
+EPOCHS = 10
+PATIENCE = 2
+TRAIN_DIR = "data/DevanagariHandwrittenCharacterDataset/Train"
+TEST_DIR = "data/DevanagariHandwrittenCharacterDataset/Test"
 
-# create a generator to be used to manipulate testing data
-test_datagen = ImageDataGenerator(rescale=1. / 255)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# load in training data 
-train_generator = trainDataGen.flow_from_directory(
-    "DevanagariHandwrittenCharacterDataset/Train",
-    target_size=(32, 32),
-    batch_size=32,
-    color_mode="grayscale",
-    class_mode="categorical")
+# ---- Data ----
+# torchvision's ImageFolder expects Train/<class_name>/*.png style layout —
+# same structure flow_from_directory / image_dataset_from_directory used.
+train_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.RandomRotation(5),
+    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+    transforms.RandomResizedCrop(IMG_SIZE, scale=(0.8, 1.2), ratio=(1.0, 1.0)),  # ~zoom_range=0.2
+    transforms.ToTensor(),  # scales to [0, 1], equivalent to rescale=1./255
+])
 
-# load in testing data
-validation_generator = test_datagen.flow_from_directory(
-    "DevanagariHandwrittenCharacterDataset/Test",
-    target_size=(32, 32),
-    batch_size=32,
-    color_mode="grayscale",
-    class_mode='categorical')
+val_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.Resize(IMG_SIZE),
+    transforms.ToTensor(),
+])
 
-# build model (with TensorFLow sequential framework to add several layers) 
-model = Sequential()
+train_dataset = datasets.ImageFolder(TRAIN_DIR, transform=train_transform)
+val_dataset = datasets.ImageFolder(TEST_DIR, transform=val_transform)
 
-# add convolutional layers
-model.add(Conv2D(filters=32,
-                 kernel_size=(3, 3),
-                 strides=1,
-                 padding='same',
-                 activation="relu",
-                 input_shape=(32, 32, 1)))
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=0,
+    pin_memory=True
+)
 
-model.add(Conv2D(filters=32,
-                 kernel_size=(3, 3),
-                 strides=1,
-                 padding='same',
-                 activation="relu",
-                 input_shape=(32, 32, 1)))
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
+    num_workers=0,
+    pin_memory=True
+)
 
-# add max pooling layers
-model.add(MaxPool2D(pool_size=(2, 2),
-                    strides=(2, 2),
-                    padding="same"))
+# ---- Model ----
+class DevanagariCNN(nn.Module):
+    def __init__(self, num_classes=NUM_CLASSES):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, padding="same"),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 32, kernel_size=3, padding="same"),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-# more convolutional layers
-model.add(Conv2D(filters=64,
-                 kernel_size=(3, 3),
-                 padding='same',
-                 strides=1,
-                 activation="relu"))
+            nn.Conv2d(32, 64, kernel_size=3, padding="same"),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(64),
+            nn.Conv2d(64, 64, kernel_size=3, padding="same"),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
-model.add(Conv2D(filters=64,
-                 kernel_size=(3, 3),
-                 strides=1,
-                 padding='same',
-                 activation="relu"))
+            nn.Dropout(0.2),
+        )
+        # 32x32 -> pool -> 16x16 -> pool -> 8x8, with 64 channels
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 8 * 8, 128),
+            nn.ReLU(inplace=True),
+            nn.Linear(128, 64),
+            nn.ReLU(inplace=True),
+            nn.Linear(64, num_classes),
+        )
+        self._init_weights()
 
-# max pooling
-model.add(MaxPool2D(pool_size=(2, 2),
-                    strides=(2, 2),
-                    padding="same"))
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
+                nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
 
-# more layers
-model.add(Dropout(0.2))
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x  # raw logits — softmax handled by loss function
 
-model.add(Flatten())
 
-model.add(Dense(128,
-                activation="relu",
-                kernel_initializer="uniform"))
+model = DevanagariCNN(NUM_CLASSES).to(device)
+print(model)
 
-model.add(Dense(64,
-                activation="relu",
-                kernel_initializer="uniform"))
+criterion = nn.CrossEntropyLoss()  # combines log-softmax + NLL, matches "categorical_crossentropy"
+optimizer = optim.Adam(model.parameters())
 
-model.add(Dense(46,
-                activation="softmax",
-                kernel_initializer="uniform"))
+# ---- Training loop with manual early stopping ----
+def run_epoch(loader, training):
+    model.train() if training else model.eval()
+    total_loss, correct, total = 0.0, 0, 0
 
-model.compile(optimizer="adam",
-              loss="categorical_crossentropy",
-              metrics=["accuracy"])
+    context = torch.enable_grad() if training else torch.no_grad()
+    with context:
+        for images, labels in loader:
+            images, labels = images.to(device), labels.to(device)
 
-print(model.summary())
+            if training:
+                optimizer.zero_grad()
 
-early_stopping_monitor = EarlyStopping(patience=2)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
 
-# this essentially fits the model on the training data, with 10 epochs and specifies other parameters to enhance model performance
-with tf.device('/gpu:0'):
-    history = model.fit_generator(train_generator, epochs=10, validation_data=validation_generator,
-                                  steps_per_epoch=2444, validation_steps=432, use_multiprocessing=True,
-                                  callbacks=[early_stopping_monitor])
+            if training:
+                loss.backward()
+                optimizer.step()
 
-# save model to be used in other applications
-model.save("hindi_cnn_weights_tf2.h5")
-pickle.dump(model, open('hindi_OCR_cnn_model_pickle.pkl2', 'wb'))
+            total_loss += loss.item() * images.size(0)
+            correct += (outputs.argmax(dim=1) == labels).sum().item()
+            total += images.size(0)
+
+    return total_loss / total, correct / total
+
+
+best_val_loss = float("inf")
+epochs_no_improve = 0
+best_state = None
+
+for epoch in range(EPOCHS):
+    train_loss, train_acc = run_epoch(train_loader, training=True)
+    val_loss, val_acc = run_epoch(val_loader, training=False)
+
+    print(f"Epoch {epoch + 1}/{EPOCHS} | "
+          f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} | "
+          f"val_loss={val_loss:.4f} val_acc={val_acc:.4f}")
+
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        epochs_no_improve = 0
+        best_state = {k: v.clone() for k, v in model.state_dict().items()}
+    else:
+        epochs_no_improve += 1
+        if epochs_no_improve >= PATIENCE:
+            print(f"Early stopping at epoch {epoch + 1} (patience={PATIENCE})")
+            break
+
+# restore_best_weights equivalent
+if best_state is not None:
+    model.load_state_dict(best_state)
+
+# ---- Save ----
+# state_dict is the standard, portable way to save PyTorch models
+torch.save(model.state_dict(), "hindi_cnn_weights_pytorch.pt")

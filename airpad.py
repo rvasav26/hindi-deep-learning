@@ -1,11 +1,11 @@
 # Author: Rhushil Vasavada
-# Deep Learning Hindi Airpad
+# Deep Learning Hindi Airpad (PyTorch inference)
 # Description: This program enables a user to draw in mid-air (airpad) where their
-# Hindi handwriting can be analyzed and assessed by a custom-trained TensorFlow Convolutional 
-# Neural Network (CNN) in real time. Users can draw in the air with their pointer finger
-# and the program will detect the user's drawing. A user is drawing when their mouth is closed,
-# and the user is not drawing when their mouth is open. The drawing is fed into the CNN and 
-# the prediction is displayed.
+# Hindi handwriting can be analyzed and assessed by a custom-trained CNN in real time.
+# Users can draw in the air with their pointer finger and the program will detect the
+# user's drawing. A user is drawing when their mouth is closed, and the user is not
+# drawing when their mouth is open. The drawing is fed into the CNN and the prediction
+# is displayed.
 
 # -*- coding: utf-8 -*-
 
@@ -13,23 +13,19 @@
 import mediapipe as mp
 import cv2
 import numpy as np
+import torch
 import hand_tracking_module as htm
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
-from keras.models import load_model
 
-# since TensorFlow model outputs English characters representing the Hindi letters, we use
-# UTF-8 encoding to represent the corresponding letters in their original Hindi form:
-classList = [u'\u091E', u'\u091F', u'\u0920', u'\u0921', u'\u0922', u'\u0923', u'\u0924', u'\u0925', u'\u0926',
-             u'\u0927', u'\u0915', u'\u0928', u'\u092A', u'\u092B', u'\u092c', u'\u092d', u'\u092e', u'\u092f',
-             u'\u0930', u'\u0932', u'\u0935', u'\u0916', u'\u0936', u'\u0937', u'\u0938', u'\u0939',
-             '''No UTF-8 encoding for the following Hindi Characters:''' 'क्ष ', 'त्र ', 'ज्ञ ',
-             u'\u0917', u'\u0918', u'\u0919', u'\u091a', u'\u091b', u'\u091c', u'\u091d', u'\u0966', u'\u0967',
-             u'\u0968', u'\u0969', u'\u096a', u'\u096b', u'\u096c', u'\u096d', u'\u096e', u'\u096f']
+from devanagari_model import DEVANAGARI_CLASSES, load_trained_model
 
-# load custom convolutional neural network model
-model = load_model('hindi_cnn_weights_tf2.h5')
+# ---- Load model for inference (architecture lives in devanagari_model.py) ----
+model, device = load_trained_model("hindi_cnn_weights_pytorch.pt")
+
+# load font once, outside the loop (your original reloaded this every single frame)
+font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
 
 # start recording video
 cap = cv2.VideoCapture(0)
@@ -59,9 +55,8 @@ while True:
     imagePIL.fill(255)
     imagePIL = cv2.cvtColor(imagePIL, cv2.COLOR_GRAY2RGB)
 
-    # load fonts and manipulate array to enable program to write in Devanagari script
+    # manipulate array to enable program to write in Devanagari script
     pil_image = Image.fromarray(imagePIL)
-    font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
     draw = ImageDraw.Draw(pil_image)
 
     # read camera footage from webcam
@@ -98,7 +93,7 @@ while True:
         cv2.circle(img, (x, y), 2, (0, 10, 240), 5)
         cv2.circle(img, (x2, y2), 2, (0, 10, 240), 5)
         cv2.line(img, (x, y), (x2, y2), (0, 191, 30), 3)
-        
+
         distance = y - y2
 
     if distance < 20:
@@ -107,7 +102,7 @@ while True:
             x2, y2 = lmList[8][1], lmList[8][2]
             myPoints.append([x2, y2, count])
             cv2.circle(img, (x2, y2), airpadPenSize, (255, 255, 255), cv2.FILLED)
-           
+
     else:
         # otherwise, the user should not be drawing:
         if len(lmList) != 0:
@@ -128,7 +123,7 @@ while True:
         if myPoints[z + 1][0] != "S" and myPoints[z][0] != "S":
             cv2.line(img, (myPoints[z][0], myPoints[z][1]), (myPoints[z + 1][0], myPoints[z + 1][1]), (0, 69, 255),
                      airpadLineSize)
-            cv2.line(imgBlank, (myPoints[z][0], myPoints[z][1]), (myPoints[z + 1][0], myPoints[z + 1][1]), (0, 0, 0), 
+            cv2.line(imgBlank, (myPoints[z][0], myPoints[z][1]), (myPoints[z + 1][0], myPoints[z + 1][1]), (0, 0, 0),
                      airpadLineSize)
 
     # rectangle to show where user should be drawing
@@ -138,17 +133,21 @@ while True:
     img = cv2.flip(img, 1)
     imgBlank2 = cv2.flip(imgBlank, 1)
 
-    # get detected handwriting and reshape into an array that is comaptible with model
+    # get detected handwriting and reshape into an array compatible with the PyTorch model
     imgPred = cv2.cvtColor(imgBlank2, cv2.COLOR_BGR2GRAY)
     imgPred = cv2.resize(imgPred, (32, 32))
     imgPred = np.invert(np.array([imgPred]))
-    imgPred = imgPred.reshape(1, 32, 32, 1) / 255
+    # PyTorch expects (batch, channels, height, width) — Keras used (batch, height, width, channels)
+    imgPred = imgPred.reshape(1, 1, 32, 32).astype(np.float32) / 255
 
-    # run the CNN on the predicted handwriting (fed as an array)
-    prediction = model.predict([imgPred], verbose=0)
+    # run the CNN on the predicted handwriting
+    with torch.no_grad():
+        input_tensor = torch.from_numpy(imgPred).to(device)
+        prediction = model(input_tensor)
+        predicted_idx = prediction.argmax(dim=1).item()
 
     # output the prediction in original Hindi form
-    draw.text((100, 55), str(classList[prediction.argmax()]), font=font, fill="black")
+    draw.text((100, 55), str(DEVANAGARI_CLASSES[predicted_idx]), font=font, fill="black")
 
     # change output canvas to be compatible with cv2.imshow() function
     letterOut = np.asarray(pil_image)
@@ -167,6 +166,6 @@ while True:
     cv2.imshow('Detected Writing', imgBlank2)
 
     cv2.waitKey(1)
-  
+
 # destroy all windows once program has terminated
 cv2.destroyAllWindows()

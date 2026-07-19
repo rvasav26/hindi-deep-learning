@@ -1,0 +1,10 @@
+torch==2.2.2
+torchvision==0.17.2
+opencv-contrib-python>=4.9
+mediapipe>=0.10.14
+numpy<2
+Pillow>=10.1
+
+# Note: torch is pinned to 2.2.2 because PyTorch stopped publishing macOS
+# x86_64 (Intel) wheels after this version. If you're on Apple Silicon or
+# Linux/Windows, you can loosen this to torch>=2.3 and use numpy>=2.0 instead.
