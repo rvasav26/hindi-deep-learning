@@ -1,10 +1,10 @@
-<p>
+<!-- <p>
   <img width="400" alt="img1" src="images/ka_to_ka.png">
   <img width="400" alt="img2" src="images/airpad_demo_pic.png">
 </p>
 
 # Hindi Deep Learning Scratchpad and Airpad
-Used a dataset of 9,000+ handwritten Devanagari characters to develop and train a TensorFlow convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
+Used a <a href="https://archive.ics.uci.edu/dataset/389/devanagari+handwritten+character+dataset">dataset</a> of 90,000+ handwritten Devanagari characters to develop and train a PyTorch convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
 
 ## Part I: Scratchpad
 
@@ -23,4 +23,4 @@ This is an extension to Part I, where, instead of drawing with a mouse, users ca
 ## Links
 Video Demo for Scratchpad: https://www.youtube.com/watch?v=B65aY0wFP3U
 
-Video Demo (Enhanced Model) for Scratchpad + Airpad: https://www.youtube.com/watch?v=K-BgNTboKrQ
+Video Demo (Enhanced Model) for Scratchpad + Airpad: https://www.youtube.com/watch?v=K-BgNTboKrQ -->
