@@ -10,13 +10,55 @@ NUM_CLASSES = 46
 # since PyTorch model outputs English characters representing the Hindi letters, we use
 # UTF-8 encoding to represent the corresponding letters in their original Hindi form:
 DEVANAGARI_CLASSES: list[str] = [
-    u'\u091E', u'\u091F', u'\u0920', u'\u0921', u'\u0922', u'\u0923', u'\u0924', u'\u0925', u'\u0926',
-    u'\u0927', u'\u0915', u'\u0928', u'\u092A', u'\u092B', u'\u092c', u'\u092d', u'\u092e', u'\u092f',
-    u'\u0930', u'\u0932', u'\u0935', u'\u0916', u'\u0936', u'\u0937', u'\u0938', u'\u0939',
-    # No UTF-8 encoding for the following Hindi Characters: 'क्ष ', 'त्र ', 'ज्ञ ',
-    u'\u0917', u'\u0918', u'\u0919', u'\u091a', u'\u091b', u'\u091c', u'\u091d', u'\u0966', u'\u0967',
-    u'\u0968', u'\u0969', u'\u096a', u'\u096b', u'\u096c', u'\u096d', u'\u096e', u'\u096f',
+    "\u091e",
+    "\u091f",
+    "\u0920",
+    "\u0921",
+    "\u0922",
+    "\u0923",
+    "\u0924",
+    "\u0925",
+    "\u0926",
+    "\u0927",
+    "\u0915",
+    "\u0928",
+    "\u092a",
+    "\u092b",
+    "\u092c",
+    "\u092d",
+    "\u092e",
+    "\u092f",
+    "\u0930",
+    "\u0932",
+    "\u0935",
+    "\u0916",
+    "\u0936",
+    "\u0937",
+    "\u0938",
+    "\u0939",
+    # No UTF-8 encoding for the following Hindi Characters:
+    "क्ष",
+    "त्र",
+    "ज्ञ",
+    "\u0917",
+    "\u0918",
+    "\u0919",
+    "\u091a",
+    "\u091b",
+    "\u091c",
+    "\u091d",
+    "\u0966",
+    "\u0967",
+    "\u0968",
+    "\u0969",
+    "\u096a",
+    "\u096b",
+    "\u096c",
+    "\u096d",
+    "\u096e",
+    "\u096f",
 ]
+
 
 class DevanagariCNN(nn.Module):
     def __init__(self, num_classes: int = NUM_CLASSES):
@@ -29,7 +71,6 @@ class DevanagariCNN(nn.Module):
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(32),
             nn.MaxPool2d(kernel_size=2, stride=2),
-
             nn.Conv2d(32, 64, kernel_size=3, padding="same"),
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(64),
@@ -37,7 +78,6 @@ class DevanagariCNN(nn.Module):
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(64),
             nn.MaxPool2d(kernel_size=2, stride=2),
-
             nn.Dropout(0.2),
         )
         self.classifier = nn.Sequential(
@@ -63,7 +103,7 @@ def load_trained_model(
     weights_path: str | Path = "hindi_cnn_weights_pytorch.pt",
     device: torch.device | None = None,
 ) -> tuple[DevanagariCNN, torch.device]:
-    
+
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = DevanagariCNN(NUM_CLASSES).to(device)
     model.load_state_dict(torch.load(weights_path, map_location=device))

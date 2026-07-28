@@ -5,8 +5,6 @@
 # Neural Network (CNN) in real time. Users can draw with their mouse and the CNN will recognize
 # the handwriting nearly instantaneously.
 
-#  -*- coding: utf-8 -*-
-
 # import necessary libraries
 import cv2
 import numpy as np
@@ -25,7 +23,7 @@ canvas.fill(255)
 classList = DEVANAGARI_CLASSES
 
 # load custom convolutional neural network model
-model, device = load_trained_model('hindi_cnn_weights_pytorch.pt')
+model, device = load_trained_model("hindi_cnn_weights_pytorch.pt")
 
 # load font once, outside the loop (your original reloaded this every single frame)
 font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
@@ -49,8 +47,8 @@ def mouseDraw(event, current_x, current_y, flags, params):
 
 
 # enable drawing for the canvas screen
-cv2.imshow('Scratchpad', canvas)
-cv2.setMouseCallback('Scratchpad', mouseDraw)
+cv2.imshow("Scratchpad", canvas)
+cv2.setMouseCallback("Scratchpad", mouseDraw)
 
 while True:
     # create a new canvas array where the predicted character will be displayed
@@ -66,7 +64,9 @@ while True:
     # for prediction
     imgPred = cv2.resize(canvas, (32, 32))
     imgPred = np.invert(np.array([imgPred]))
-    imgPred = imgPred.reshape(1, 1, 32, 32).astype(np.float32) / 255  # PyTorch wants NCHW, not NHWC
+    imgPred = (
+        imgPred.reshape(1, 1, 32, 32).astype(np.float32) / 255
+    )  # PyTorch wants NCHW, not NHWC
 
     # run the model on the transformed matrix containing the handwriting as a tensor
     with torch.no_grad():
@@ -84,14 +84,14 @@ while True:
     letterOut = np.asarray(pil_image)
 
     # clear scratchpad if user enters "w" (reset)
-    if cv2.waitKey(1) & 0xFF == ord('w'):
+    if cv2.waitKey(1) & 0xFF == ord("w"):
         canvas = np.zeros((640, 640, 1), np.uint8)
         canvas.fill(255)
 
     # display all necessary windows for output
-    cv2.imshow('Prediction', letterOut)
+    cv2.imshow("Prediction", letterOut)
     cv2.moveWindow("Prediction", 640, -200)
-    cv2.imshow('Scratchpad', canvas)
+    cv2.imshow("Scratchpad", canvas)
 
     cv2.waitKey(1)
 

@@ -37,7 +37,7 @@ airpadPenSize = 12
 airpadLineSize = 21
 
 # collect MediaPipe modules for detecting hands and detecting face landmarks from a face mesh
-detector = htm.handDetector(detectionCon=0.7)
+detector = htm.HandDetector(detectionCon=0.7)
 mpDraw = mp.solutions.drawing_utils
 mpFaceMesh = mp.solutions.face_mesh
 faceMesh = mpFaceMesh.FaceMesh(max_num_faces=5)
@@ -71,14 +71,15 @@ while True:
     lmList = detector.findPosition(img, draw=False)
 
     # create facemesh from webcam
-    success, imgFace = cap.read()
-    imgRGB = cv2.cvtColor(imgFace, cv2.COLOR_BGR2RGB)
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     results = faceMesh.process(imgRGB)
 
     if results.multi_face_landmarks:
         # draw each facial landmark (468 of them)
         for faceLms in results.multi_face_landmarks:
-            mpDraw.draw_landmarks(img, faceLms, mpFaceMesh.FACEMESH_CONTOURS, drawSpec, drawSpec)
+            mpDraw.draw_landmarks(
+                img, faceLms, mpFaceMesh.FACEMESH_CONTOURS, drawSpec, drawSpec
+            )
 
         # get each landmark's position
         lms = list(enumerate(faceLms.landmark))
@@ -114,17 +115,31 @@ while True:
     for point in myPoints:
         # draw each point in the array containing the points the user has drawn
         if point[0] != "S":
-            cv2.circle(img, (point[0], point[1]), airpadPenSize, (0, 69, 255), cv2.FILLED)
-            cv2.circle(imgBlank, (point[0], point[1]), airpadPenSize, (0, 0, 0), cv2.FILLED)
+            cv2.circle(
+                img, (point[0], point[1]), airpadPenSize, (0, 69, 255), cv2.FILLED
+            )
+            cv2.circle(
+                imgBlank, (point[0], point[1]), airpadPenSize, (0, 0, 0), cv2.FILLED
+            )
 
     for z in range(len(myPoints) - 1):
         # to make the appearance of drawing smoother, draw a line between each point of the user's
         # handwriting
         if myPoints[z + 1][0] != "S" and myPoints[z][0] != "S":
-            cv2.line(img, (myPoints[z][0], myPoints[z][1]), (myPoints[z + 1][0], myPoints[z + 1][1]), (0, 69, 255),
-                     airpadLineSize)
-            cv2.line(imgBlank, (myPoints[z][0], myPoints[z][1]), (myPoints[z + 1][0], myPoints[z + 1][1]), (0, 0, 0),
-                     airpadLineSize)
+            cv2.line(
+                img,
+                (myPoints[z][0], myPoints[z][1]),
+                (myPoints[z + 1][0], myPoints[z + 1][1]),
+                (0, 69, 255),
+                airpadLineSize,
+            )
+            cv2.line(
+                imgBlank,
+                (myPoints[z][0], myPoints[z][1]),
+                (myPoints[z + 1][0], myPoints[z + 1][1]),
+                (0, 0, 0),
+                airpadLineSize,
+            )
 
     # rectangle to show where user should be drawing
     cv2.rectangle(img, (320, 320), (0, 0), (255, 0, 0), 2)
@@ -147,25 +162,25 @@ while True:
         predicted_idx = prediction.argmax(dim=1).item()
 
     # output the prediction in original Hindi form
-    draw.text((100, 55), str(DEVANAGARI_CLASSES[predicted_idx]), font=font, fill="black")
+    draw.text(
+        (100, 55), str(DEVANAGARI_CLASSES[predicted_idx]), font=font, fill="black"
+    )
 
     # change output canvas to be compatible with cv2.imshow() function
     letterOut = np.asarray(pil_image)
     letterOut = cv2.cvtColor(letterOut, cv2.COLOR_RGB2GRAY)
 
     # clear scratchpad if user enters "w" (reset)
-    if cv2.waitKey(1) & 0xFF == ord('w'):
+    if cv2.waitKey(1) & 0xFF == ord("w"):
         myPoints = []
         imgBlank = np.zeros((320, 320, 3), dtype=np.uint8)
         imgBlank.fill(255)
 
     # display all necessary windows for output
-    cv2.imshow('Prediction', letterOut)
+    cv2.imshow("Prediction", letterOut)
     cv2.moveWindow("Prediction", 0, 270)
-    cv2.imshow('Image', img)
-    cv2.imshow('Detected Writing', imgBlank2)
-
-    cv2.waitKey(1)
+    cv2.imshow("Image", img)
+    cv2.imshow("Detected Writing", imgBlank2)
 
 # destroy all windows once program has terminated
 cv2.destroyAllWindows()
