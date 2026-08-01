@@ -1,5 +1,6 @@
 import torch
 from devanagari_model import DevanagariCNN
+from onnxruntime.quantization import quantize_dynamic, QuantType
 
 model = DevanagariCNN()
 
@@ -27,4 +28,11 @@ torch.onnx.export(
         "input": {0: "batch_size"},
         "logits": {0: "batch_size"},
     },
+)
+
+quantize_dynamic(
+    model_input="hindi_cnn.onnx",
+    model_output="hindi_cnn_int8.onnx",
+    weight_type=QuantType.QInt8,
+    op_types_to_quantize=["MatMul"],
 )
