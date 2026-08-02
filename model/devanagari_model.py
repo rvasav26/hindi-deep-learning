@@ -7,6 +7,7 @@ import torch.nn as nn
 
 NUM_CLASSES = 46
 
+
 class DevanagariCNN(nn.Module):
     def __init__(self, num_classes: int = NUM_CLASSES):
         super().__init__()
