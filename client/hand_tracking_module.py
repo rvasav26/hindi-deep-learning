@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import time
-
 import cv2
 import mediapipe as mp
 

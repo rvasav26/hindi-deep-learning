@@ -13,21 +13,11 @@
 import mediapipe as mp
 import cv2
 import numpy as np
-import client.hand_tracking_module as htm
+import hand_tracking_module as htm
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
-import onnxruntime as ort
-
-from model.devanagari_model import DEVANAGARI_CLASSES
-
-# Load model for inference
-session = ort.InferenceSession(
-    "hindi_cnn_int8.onnx",  # or hindi_cnn.onnx
-    providers=["CPUExecutionProvider"],
-)
-
-input_name = session.get_inputs()[0].name
+import requests
 
 # load font once, outside the loop
 font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
@@ -153,24 +143,27 @@ while True:
     img = cv2.flip(img, 1)
     imgBlank2 = cv2.flip(imgBlank, 1)
 
-    # get detected handwriting and reshape into an array compatible with the PyTorch model
-    imgPred = cv2.cvtColor(imgBlank2, cv2.COLOR_BGR2GRAY)
-    imgPred = cv2.resize(imgPred, (32, 32))
-    imgPred = np.invert(np.array([imgPred]))
-    # PyTorch expects (batch, channels, height, width) — Keras used (batch, height, width, channels)
-    imgPred = imgPred.reshape(1, 1, 32, 32).astype(np.float32) / 255
+    image_to_send = cv2.cvtColor(imgBlank2, cv2.COLOR_BGR2GRAY)
+    image_to_send = np.invert(image_to_send)
 
-    # run the CNN on the predicted handwriting
-    prediction = session.run(
-        None,
-        {input_name: imgPred},
-    )[0]
+    _, buffer = cv2.imencode(".png", image_to_send)
 
-    predicted_idx = prediction.argmax(axis=1)[0]
+    response = requests.post(
+        "http://localhost:8000/predict",
+        files={"file": ("image.png", buffer.tobytes(), "image/png")},
+    )
+
+    response.raise_for_status()
+
+    result = response.json()
+    predicted_char = result["char"]
 
     # output the prediction in original Hindi form
     draw.text(
-        (100, 55), str(DEVANAGARI_CLASSES[predicted_idx]), font=font, fill="black"
+        (100, 55),
+        predicted_char,
+        font=font,
+        fill="black",
     )
 
     # change output canvas to be compatible with cv2.imshow() function

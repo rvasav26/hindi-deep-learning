@@ -12,22 +12,11 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 import onnxruntime as ort
-from model.devanagari_model import DEVANAGARI_CLASSES
+import requests
 
 canvas = np.zeros((640, 640, 1), np.uint8)
 canvas.fill(255)
 
-# since the model outputs English-indexed classes representing the Hindi letters, we use
-# UTF-8 encoding to represent the corresponding letters in their original Hindi form:
-classList = DEVANAGARI_CLASSES
-
-# load custom convolutional neural network model
-session = ort.InferenceSession(
-    "hindi_cnn_int8.onnx",  # or hindi_cnn.onnx
-    providers=["CPUExecutionProvider"],
-)
-
-input_name = session.get_inputs()[0].name
 
 # load font once, outside the loop (your original reloaded this every single frame)
 font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
@@ -64,22 +53,20 @@ while True:
     pil_image = Image.fromarray(imagePIL)
     draw = ImageDraw.Draw(pil_image)
 
-    # perform matrix transformations to prepare user's handwriting to be fed into model
-    # for prediction
-    imgPred = cv2.resize(canvas, (32, 32))
-    imgPred = np.invert(np.array([imgPred]))
-    imgPred = (
-        imgPred.reshape(1, 1, 32, 32).astype(np.float32) / 255
-    )  # PyTorch wants NCHW, not NHWC
+    # Send the drawing to the inference API.
+    image_to_send = np.invert(canvas)
 
-    # run the model on the transformed matrix containing the handwriting as a tensor
-    prediction = session.run(
-        None,
-        {input_name: imgPred},
-    )[0]
+    _, buffer = cv2.imencode(".png", image_to_send)
 
-    # store the prediction (Devanagari character with highest match with user's writing)
-    finalPred = classList[np.argmax(prediction, axis=1)[0]]
+    response = requests.post(
+        "http://localhost:8000/predict",
+        files={"file": ("image.png", buffer.tobytes(), "image/png")},
+    )
+
+    response.raise_for_status()
+
+    result = response.json()
+    finalPred = result["char"]
 
     # draw the prediction on the output window
     draw.text((250, 200), str(finalPred), font=font, fill="black")
