@@ -1,0 +1,6 @@
+fastapi==0.141.1
+uvicorn==0.52.1
+onnxruntime==1.23.2
+numpy==1.26.4
+pillow==12.3.0
+python-multipart==0.0.32
