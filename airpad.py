@@ -13,16 +13,21 @@
 import mediapipe as mp
 import cv2
 import numpy as np
-import torch
 import hand_tracking_module as htm
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
+import onnxruntime as ort
 
-from devanagari_model import DEVANAGARI_CLASSES, load_trained_model
+from devanagari_model import DEVANAGARI_CLASSES
 
 # Load model for inference
-model, device = load_trained_model("hindi_cnn_weights_pytorch.pt")
+session = ort.InferenceSession(
+    "hindi_cnn_int8.onnx",  # or hindi_cnn.onnx
+    providers=["CPUExecutionProvider"],
+)
+
+input_name = session.get_inputs()[0].name
 
 # load font once, outside the loop
 font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
@@ -156,10 +161,12 @@ while True:
     imgPred = imgPred.reshape(1, 1, 32, 32).astype(np.float32) / 255
 
     # run the CNN on the predicted handwriting
-    with torch.no_grad():
-        input_tensor = torch.from_numpy(imgPred).to(device)
-        prediction = model(input_tensor)
-        predicted_idx = prediction.argmax(dim=1).item()
+    prediction = session.run(
+        None,
+        {input_name: imgPred},
+    )[0]
+
+    predicted_idx = prediction.argmax(axis=1)[0]
 
     # output the prediction in original Hindi form
     draw.text(
@@ -177,9 +184,9 @@ while True:
         imgBlank.fill(255)
 
     # display all necessary windows for output
+    cv2.imshow("Image", img)
     cv2.imshow("Prediction", letterOut)
     cv2.moveWindow("Prediction", 0, 270)
-    cv2.imshow("Image", img)
     cv2.imshow("Detected Writing", imgBlank2)
 
 # destroy all windows once program has terminated

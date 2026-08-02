@@ -8,12 +8,11 @@
 # import necessary libraries
 import cv2
 import numpy as np
-import torch
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
-
-from devanagari_model import DEVANAGARI_CLASSES, load_trained_model
+import onnxruntime as ort
+from devanagari_model import DEVANAGARI_CLASSES
 
 canvas = np.zeros((640, 640, 1), np.uint8)
 canvas.fill(255)
@@ -23,7 +22,12 @@ canvas.fill(255)
 classList = DEVANAGARI_CLASSES
 
 # load custom convolutional neural network model
-model, device = load_trained_model("hindi_cnn_weights_pytorch.pt")
+session = ort.InferenceSession(
+    "hindi_cnn_int8.onnx",  # or hindi_cnn.onnx
+    providers=["CPUExecutionProvider"],
+)
+
+input_name = session.get_inputs()[0].name
 
 # load font once, outside the loop (your original reloaded this every single frame)
 font = ImageFont.truetype("/System/Library/Fonts/Supplemental/DevanagariMT.ttc", 200)
@@ -69,12 +73,13 @@ while True:
     )  # PyTorch wants NCHW, not NHWC
 
     # run the model on the transformed matrix containing the handwriting as a tensor
-    with torch.no_grad():
-        inputTensor = torch.from_numpy(imgPred).to(device)
-        prediction = model(inputTensor)
+    prediction = session.run(
+        None,
+        {input_name: imgPred},
+    )[0]
 
     # store the prediction (Devanagari character with highest match with user's writing)
-    finalPred = classList[prediction.argmax(dim=1).item()]
+    finalPred = classList[np.argmax(prediction, axis=1)[0]]
 
     # draw the prediction on the output window
     draw.text((250, 200), str(finalPred), font=font, fill="black")
