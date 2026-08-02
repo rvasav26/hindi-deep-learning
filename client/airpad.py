@@ -7,7 +7,6 @@
 # drawing when their mouth is open. The drawing is fed into the CNN and the prediction
 # is displayed.
 
-# -*- coding: utf-8 -*-
 
 # import necessary libraries
 import mediapipe as mp

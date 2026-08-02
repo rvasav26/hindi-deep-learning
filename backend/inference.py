@@ -36,29 +36,11 @@ def preprocess(image: np.ndarray) -> np.ndarray:
 
 
 def predict(image: np.ndarray) -> dict:
-    """
-    Predict the handwritten Devanagari character.
-
-    Parameters
-    ----------
-    image
-        Grayscale or RGB image.
-
-    Returns
-    -------
-    dict
-        {
-            "char": "...",
-            "confidence": 0.997,
-            "index": 10
-        }
-    """
-
     input_tensor = preprocess(image)
 
     logits, embedding = session.run(None, {input_name: input_tensor})
 
-    logits = logits[0]  # remove batch dimension
+    logits = logits[0]
 
     predicted_index = int(np.argmax(logits))
 
