@@ -1,26 +1,77 @@
-<!-- <p>
-  <img width="400" alt="img1" src="images/ka_to_ka.png">
-  <img width="400" alt="img2" src="images/airpad_demo_pic.png">
-</p>
+# Devanagari Handwriting Recognition System
 
-# Hindi Deep Learning Scratchpad and Airpad
-Used a <a href="https://archive.ics.uci.edu/dataset/389/devanagari+handwritten+character+dataset">dataset</a> of 90,000+ handwritten Devanagari characters to develop and train a PyTorch convolutional neural network (CNN). Applied CNN to two <a href="https://www.youtube.com/watch?v=K-BgNTboKrQ">applications</a> below:
+<p> <img width="400" alt="Devanagari character recognition" src="images/ka_to_ka.png">  </p>
 
-## Part I: Scratchpad
+This project features a live Devanagari handwriting recognition system using a PyTorch CNN, OpenCV, and MediaPipe.
 
-<img width="800" alt="img3" src="images/scratchpad_overview.png" />
+The CNN recognizes 46 Devanagari character classes from digital scratchpad or webcam footage input, allowing users to practice handwriting with real-time model feedback.
 
-Using OpenCV and NumPy, I developed a program to enable users to write characters on an online scratchpad. The CNN receives the image of the handwritten text in the form of a NumPy array and, after
-performing matrix transformations, makes a prediction of the character. This process is entirely in real time, and the user receives feedback from the model with an inference latency under 100 milliseconds.
+## Model
 
+The CNN was trained on 90,000+ handwritten Devanagari characters.
 
-## Part II: Airpad
+Input images are converted to grayscale and resized to 32×32 pixels before inference.
 
-<img width="870" alt="img4" src="images/airpad_overview.png" />
+The model also produces a 64-dimensional embedding from its penultimate layer.
 
-This is an extension to Part I, where, instead of drawing with a mouse, users can draw in midair with their pointer finger. This is done by using the additional MediaPipe library. First, the user's hand and pointer finger are detected, and their locations are saved. Second, a face mesh is applied to the user's face, and two locations are located and saved: namely, the upper and lower inner lips. This second step is to allow the user to "put down" the finger pen (if their mouth is closed, they are drawing, and if their mouth is open, they are not drawing) to prevent them from drawing when they don't want to. Then, the user's drawing is transformed into an array that the CNN can interpret. Finally, the CNN outputs its prediction of the Hindi letter the user has drawn. This is all done in real time.
+## ONNX Conversion
 
-## Links
-Video Demo for Scratchpad: https://www.youtube.com/watch?v=B65aY0wFP3U
+The trained PyTorch model was exported to ONNX and validated against the original PyTorch model.
 
-Video Demo (Enhanced Model) for Scratchpad + Airpad: https://www.youtube.com/watch?v=K-BgNTboKrQ -->
+Two ONNX versions were produced:
+
+- FP32 (Used)
+- INT8
+
+## Benchmark
+
+200 sequential CPU inference calls were used for the model benchmarks.
+
+| Runtime      | Precision | Mean Latency | P95 Latency |     Size |
+| ------------ | --------- | -----------: | ----------: | -------: |
+| PyTorch      | FP32      |     2.128 ms |    3.855 ms | 2.305 MB |
+| ONNX Runtime | FP32      |     0.520 ms |    0.861 ms | 2.299 MB |
+| ONNX Runtime | INT8      |     0.612 ms |    1.310 ms | 0.771 MB |
+
+## API Benchmark
+
+The FastAPI inference endpoint was benchmarked separately.
+
+| Metric             |             Result |
+| ------------------ | -----------------: |
+| Mean latency       |          10.744 ms |
+| Median latency     |           8.438 ms |
+| P95 latency        |          23.728 ms |
+| P99 latency        |          32.584 ms |
+| Min latency        |           6.176 ms |
+| Max latency        |          68.360 ms |
+| Standard deviation |           7.355 ms |
+| Throughput         | 93.07 requests/sec |
+
+## Analysis
+
+The model's 64-dimensional embeddings are used to visualize the learned representation space. See `analysis/embedding_tsne.png`:
+
+<p><img width="400" alt="Embedding t-SNE visualization" src="analysis/embedding_tsne.png"> </p>
+
+The project also includes a confusion matrix to examine which character classes are most frequently confused.
+
+## Running the Project
+
+Start the backend:
+
+```bash
+docker compose up
+```
+
+The Airpad client can be run with:
+
+```bash
+python client/airpad.py
+```
+
+The Scratchpad client can be run with:
+
+```bash
+python client/scratchpad.py
+```
