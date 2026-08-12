@@ -8,7 +8,9 @@ The CNN recognizes 46 Devanagari character classes from digital scratchpad or we
 
 ## Model
 
-The CNN was trained on 90,000+ handwritten Devanagari characters.
+The CNN was trained on 90,000+ handwritten Devanagari characters, using the following dataset:
+
+- [Devanagari Handwritten Character Dataset](https://archive.ics.uci.edu/dataset/389/devanagari+handwritten+character+dataset)
 
 Input images are converted to grayscale and resized to 32×32 pixels before inference.
 
